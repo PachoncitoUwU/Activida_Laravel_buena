@@ -1,56 +1,42 @@
 <?php
 
 namespace App\Http\Controllers;
-
-use App\Models\Product;
+use App\Http\Requests\StoreProductRequest;
+use App\Http\Requests\UpdateProductRequest;
 use App\Http\Resources\ProductResource;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use App\Models\Product;
 
 class ProductController extends Controller
 {
-    // Listar todos los productos
     public function index()
     {
-        $products = Product::latest()->paginate(10);
-        return ProductResource::collection($products);
+        $products = Product::all();
+        return view('productos', compact('products'));
     }
 
-    // Guardar un nuevo producto
-    public function store(Request $request)
+    public function store(StoreProductRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'price' => 'required|numeric|min:0',
-            'stock' => 'required|integer|min:0',
-        ]);
+        $product = Product::create($request->validated());
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
-
-        $product = Product::create($request->all());
-
-        return new ProductResource($product);
+        return (new ProductResource($product))
+            ->response()
+            ->setStatusCode(201);
     }
 
-    // Ver un solo producto
     public function show(Product $product)
     {
         return new ProductResource($product);
     }
 
-    // Actualizar un producto
-    public function update(Request $request, Product $product)
+    public function update(UpdateProductRequest $request, Product $product)
     {
-        $product->update($request->all());
-        return new ProductResource($product);
+        $product->update($request->validated());
+        return new ProductResource($product->refresh());
     }
 
-    // Eliminar un producto
     public function destroy(Product $product)
     {
         $product->delete();
-        return response()->json(['message' => 'Producto eliminado'], 204);
+        return response()->json(null, 204);
     }
 }

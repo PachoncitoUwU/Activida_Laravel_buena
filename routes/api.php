@@ -4,12 +4,14 @@ use App\Http\Controllers\ProductController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-// Ruta por defecto (puedes dejarla o quitarla)
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-// --- TUS NUEVAS RUTAS ---
-// Esta línea crea automáticamente las rutas para: 
-// listar, crear, ver, actualizar y eliminar productos.
-Route::apiResource('products', ProductController::class);
+Route::get('/products', [ProductController::class, 'index']);
+
+Route::middleware('auth:sanctum')->group(function () {
+Route::post('products', [ProductController::class, 'store']);
+Route::patch('products/{product}', [ProductController::class, 'update']);
+Route::delete('products/{product}', [ProductController::class, 'destroy']);
+});
